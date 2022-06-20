@@ -16,6 +16,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
+from app import forms
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('fitness-upload/', forms.FitnessWizard.as_view([forms.FitnessWizardUploadImage, forms.FitnessStatForm])),
 ]
