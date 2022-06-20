@@ -139,3 +139,5 @@ dmypy.json
 
 # PyCharm env
 .idea/
+static/screenshots/*
+!static/screenshots/
