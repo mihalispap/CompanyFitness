@@ -141,3 +141,4 @@ dmypy.json
 .idea/
 static/screenshots/*
 !static/screenshots/
+media/
