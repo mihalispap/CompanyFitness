@@ -1,11 +1,14 @@
 import datetime
 import os
 
+import requests
 from django import forms
 from django.core.files.storage import FileSystemStorage
 
 from django.shortcuts import render
 from formtools.wizard.views import SessionWizardView
+
+import urllib.parse
 
 from CompanyFitness import settings
 
@@ -25,7 +28,7 @@ class FitnessStatForm(forms.ModelForm):
 
 
 class FitnessWizard(SessionWizardView):
-    file_storage = FileSystemStorage(location=os.path.join(settings.STATIC_URL, 'screenshots'))
+    file_storage = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, settings.MEDIA_URL))
     form_list = [FitnessWizardUploadImage, FitnessStatForm]
 
     def done(self, form_list, **kwargs):
@@ -45,7 +48,13 @@ class FitnessWizard(SessionWizardView):
     def get_context_data(self, form, **kwargs):
         context = super().get_context_data(form=form, **kwargs)
         if self.steps.current == '1':
-            form.fields['metric'].initial = 'steps'
-            form.fields['tracked_on'].initial = datetime.datetime.now()
-            form.fields['value'].initial = 0
+            file_path = os.path.join(settings.MEDIA_ROOT, settings.MEDIA_URL, self.request.FILES['0-screenshot'].name)
+            endpoint = f'{"https://" if self.request.is_secure() else "http://"}{self.request.get_host()}'
+            endpoint = f'{endpoint}/identify?image_path={urllib.parse.quote_plus(file_path)}'
+
+            # TODO: handle multiple identified metrics
+            data = requests.get(endpoint).json()
+            form.fields['metric'].initial = data[0]['metric']
+            form.fields['tracked_on'].initial = data[0]['tracked_on']
+            form.fields['value'].initial = data[0]['value']
         return context
