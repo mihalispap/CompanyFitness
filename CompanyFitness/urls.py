@@ -15,6 +15,7 @@ Including another URLconf
 """
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.contrib.auth.decorators import user_passes_test
 from django.urls import path
 
 from CompanyFitness import settings
@@ -25,5 +26,7 @@ urlpatterns = [
                   path('admin/', admin.site.urls),
                   path('identify', views.identify_fitness_metric),
                   path('fitness-upload/',
-                       forms.FitnessWizard.as_view([forms.FitnessWizardUploadImage, forms.FitnessStatForm])),
+                       user_passes_test(lambda user: user.is_authenticated, '/admin/')(
+                           forms.FitnessWizard.as_view([forms.FitnessWizardUploadImage, forms.FitnessStatForm]))
+                       ),
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
