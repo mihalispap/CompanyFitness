@@ -3,9 +3,10 @@ import os
 
 import requests
 from django import forms
+from django.contrib import admin
 from django.core.files.storage import FileSystemStorage
 
-from django.shortcuts import render
+from django.shortcuts import redirect
 from formtools.wizard.views import SessionWizardView
 
 import urllib.parse
@@ -31,6 +32,11 @@ class FitnessWizard(SessionWizardView):
     file_storage = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, settings.MEDIA_URL))
     form_list = [FitnessWizardUploadImage, FitnessStatForm]
 
+    def __init__(self):
+        if not self.request.user.is_authenticated:
+            redirect('admin/')
+        super().__init__()
+
     def done(self, form_list, **kwargs):
         # TODO: add check for inexistent on the specific date
         fitness_stat = models.FitnessStat(
@@ -41,11 +47,10 @@ class FitnessWizard(SessionWizardView):
             tracked_on=form_list[1].data['1-tracked_on'],
         )
         fitness_stat.save()
-        return render(self.request, 'done.html', {
-            'form_data': [form.cleaned_data for form in form_list],
-        })
+        return redirect('admin/')
 
     def get_context_data(self, form, **kwargs):
+
         context = super().get_context_data(form=form, **kwargs)
         if self.steps.current == '1':
             file_path = os.path.join(settings.MEDIA_ROOT, settings.MEDIA_URL, self.request.FILES['0-screenshot'].name)
@@ -58,3 +63,17 @@ class FitnessWizard(SessionWizardView):
             form.fields['tracked_on'].initial = data[0]['tracked_on']
             form.fields['value'].initial = data[0]['value']
         return context
+
+
+class FitnessForm(forms.ModelForm):
+    class Meta:
+        model = models.FitnessStat
+        fields = '__all__'
+
+
+class FitnessAdmin(admin.ModelAdmin):
+    form = FitnessForm
+
+    def get_queryset(self, request):
+        team_member = models.TeamMember.objects.get(user=request.user)
+        return models.FitnessStat.objects.filter(team_member=team_member).all()

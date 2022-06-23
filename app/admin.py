@@ -7,4 +7,7 @@ from app import forms
 admin.site.register(models.Company)
 admin.site.register(models.CompanyTeam)
 admin.site.register(models.TeamMember)
-admin.site.register(models.FitnessStat)
+# admin.site.register(models.FitnessStat)
+
+
+admin.site.register(models.FitnessStat, forms.FitnessAdmin)
