@@ -42,7 +42,7 @@ class FitnessWizard(SessionWizardView):
             tracked_on=form_list[1].data['1-tracked_on'],
         )
         fitness_stat.save()
-        return redirect('admin/')
+        return redirect('/admin/')
 
     def get_context_data(self, form, **kwargs):
 
