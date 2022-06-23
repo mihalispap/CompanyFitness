@@ -32,11 +32,6 @@ class FitnessWizard(SessionWizardView):
     file_storage = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, settings.MEDIA_URL))
     form_list = [FitnessWizardUploadImage, FitnessStatForm]
 
-    def __init__(self):
-        if not self.request.user.is_authenticated:
-            redirect('admin/')
-        super().__init__()
-
     def done(self, form_list, **kwargs):
         # TODO: add check for inexistent on the specific date
         fitness_stat = models.FitnessStat(
