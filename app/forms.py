@@ -33,14 +33,24 @@ class FitnessWizard(SessionWizardView):
     form_list = [FitnessWizardUploadImage, FitnessStatForm]
 
     def done(self, form_list, **kwargs):
-        # TODO: add check for inexistent on the specific date
-        fitness_stat = models.FitnessStat(
-            team_member=models.TeamMember.objects.get(user=self.request.user),
-            file=form_list[0].files['0-screenshot'],
-            value=form_list[1].data['1-value'],
-            metric=form_list[1].data['1-metric'],
-            tracked_on=form_list[1].data['1-tracked_on'],
-        )
+        fitness_stat = models.FitnessStat()
+        if models.FitnessStat.objects.filter(
+                team_member=models.TeamMember.objects.get(user=self.request.user),
+                tracked_on=form_list[1].data['1-tracked_on'],
+                metric=form_list[1].data['1-metric'],
+        ).exists():
+            fitness_stat = models.FitnessStat.objects.filter(
+                team_member=models.TeamMember.objects.get(user=self.request.user),
+                tracked_on=form_list[1].data['1-tracked_on'],
+                metric=form_list[1].data['1-metric'],
+            ).first()
+
+        fitness_stat.team_member = models.TeamMember.objects.get(user=self.request.user)
+        fitness_stat.file = form_list[0].files['0-screenshot']
+        fitness_stat.value = form_list[1].data['1-value']
+        fitness_stat.metric = form_list[1].data['1-metric']
+        fitness_stat.tracked_on = form_list[1].data['1-tracked_on']
+
         fitness_stat.save()
         return redirect('/admin/')
 
